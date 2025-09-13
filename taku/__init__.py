@@ -75,24 +75,38 @@ def new_script(
         "-t",
         ArgSpec(help="Optional template for the script", dest="template_name"),
     ] = None,
+    content: Annotated[
+        str | None,
+        "--content",
+        "-c",
+        ArgSpec(help="Content for the new script"),
+    ] = None,
 ):
     """Create a new script"""
+
+    assert not (content and template_name), (
+        "Cannot specify both --content and --template options"
+    )
 
     scripts.mkdir(parents=True, exist_ok=True)
     script_name, script_path = _resolve_script(scripts, name)
     script_folder = script_path.parent
-    content = f"#!/usr/bin/env bash\n\necho 'hello from {script_name}'"
     if script_folder.exists():
         raise ScriptAlreadyExistsError(f"The script {script_name} already exists")
-    if template_name:
+
+    if content:
+        script_content = content
+    elif template_name:
         if not (template := scripts / ".templates" / template_name).exists():
             if not (template := Path() / template_name).exists():
                 raise TemplateNotFoundError(f"Template {template} does not exists")
-        content = Template(template.read_text()).substitute(script_name=name)
+        script_content = Template(template.read_text()).substitute(script_name=name)
+    else:
+        script_content = f"#!/usr/bin/env bash\n\necho 'hello from {script_name}'"
     script_folder.mkdir(parents=True, exist_ok=True)
     script = script_folder / name
     script.touch()
-    script.write_text(content)
+    script.write_text(script_content)
     script.chmod(script.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
     if "." in name:
         (script.parent / script_name).symlink_to(script.name)

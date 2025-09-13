@@ -21,7 +21,7 @@ def test_new_script_basic(tmp_path):
     """Test creating a new script."""
     scripts_dir = tmp_path / "scripts"
 
-    new_script(scripts_dir, "test", None)
+    new_script(scripts_dir, "test")
 
     script_path = scripts_dir / "test" / "test"
     assert script_path.exists()
@@ -39,7 +39,7 @@ def test_new_script_already_exists(tmp_path):
     script_dir.mkdir(parents=True)
 
     with pytest.raises(ScriptAlreadyExistsError):
-        new_script(scripts_dir, "test", None)
+        new_script(scripts_dir, "test")
 
 
 def test_new_script_with_template(tmp_path):
@@ -52,7 +52,7 @@ def test_new_script_with_template(tmp_path):
     template_file = templates_dir / "python"
     template_file.write_text("#!/usr/bin/env python3\nprint('Hello ${script_name}')")
 
-    new_script(scripts_dir, "myapp", "python")
+    new_script(scripts_dir, "myapp", "python", None)
 
     script_path = scripts_dir / "myapp" / "myapp"
     content = script_path.read_text()
@@ -60,12 +60,43 @@ def test_new_script_with_template(tmp_path):
     assert "print('Hello myapp')" in content
 
 
+def test_new_script_with_content(tmp_path):
+    """Test creating a script with custom content."""
+    scripts_dir = tmp_path / "scripts"
+    custom_content = (
+        "#!/usr/bin/env python3\nprint('Custom script content')\nprint('Hello world!')"
+    )
+
+    new_script(scripts_dir, "custom", None, custom_content)
+
+    script_path = scripts_dir / "custom" / "custom"
+    content = script_path.read_text()
+    assert content == custom_content
+    assert script_path.stat().st_mode & 0o111  # Check executable
+
+
+def test_new_script_content_and_template_exclusive(tmp_path):
+    """Test that content and template parameters are mutually exclusive."""
+    scripts_dir = tmp_path / "scripts"
+    templates_dir = scripts_dir / ".templates"
+    templates_dir.mkdir(parents=True)
+
+    # Create a template
+    template_file = templates_dir / "python"
+    template_file.write_text("#!/usr/bin/env python3\nprint('Template content')")
+
+    custom_content = "#!/usr/bin/env bash\necho 'Custom content'"
+
+    with pytest.raises(AssertionError):
+        new_script(scripts_dir, "test", "python", custom_content)
+
+
 def test_new_script_template_not_found(tmp_path):
     """Test error when template doesn't exist."""
     scripts_dir = tmp_path / "scripts"
 
     with pytest.raises(TemplateNotFoundError):
-        new_script(scripts_dir, "test", "nonexistent")
+        new_script(scripts_dir, "test", "nonexistent", None)
 
 
 def test_get_script_basic(tmp_path, capsys):
