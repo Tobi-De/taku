@@ -11,6 +11,9 @@ from typing import Annotated
 
 from .command_parser import ArgSpec
 from .command_parser import command
+from .exceptions import ScriptAlreadyExistsError
+from .exceptions import ScriptNotFoundError
+from .exceptions import TemplateNotFoundError
 
 
 parser = argparse.ArgumentParser(
@@ -46,7 +49,7 @@ def _resolve_script(
     script_path = scripts / script_name / script_name
 
     if raise_error and not script_path.exists():
-        raise FileNotFoundError(f"Script '{name}' not found")
+        raise ScriptNotFoundError(f"Script '{name}' not found")
 
     return script_name, script_path
 
@@ -80,11 +83,11 @@ def new_script(
     script_folder = script_path.parent
     content = f"#!/usr/bin/env bash\n\necho 'hello from {script_name}'"
     if script_folder.exists():
-        raise ValueError(f"The script {script_name} already exists")
+        raise ScriptAlreadyExistsError(f"The script {script_name} already exists")
     if template_name:
         if not (template := scripts / ".templates" / template_name).exists():
             if not (template := Path() / template_name).exists():
-                raise ValueError(f"Template {template} does not exists")
+                raise TemplateNotFoundError(f"Template {template} does not exists")
         content = Template(template.read_text()).substitute(script_name=name)
     script_folder.mkdir(parents=True, exist_ok=True)
     script = script_folder / name
@@ -135,7 +138,7 @@ def edit_script(
     script_path = scripts / name / name
 
     if not script_path.exists():
-        raise FileNotFoundError(f"Script '{name}' not found")
+        raise ScriptNotFoundError(f"Script '{name}' not found")
 
     editor = os.environ.get("EDITOR") or os.environ.get("VISUAL") or "vi"
     subprocess.run([editor, str(script_path.resolve())])

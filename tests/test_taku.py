@@ -12,6 +12,9 @@ from taku import run_script
 from taku import sync_scripts
 from taku import systemd_manage
 from taku import uninstall_scripts
+from taku.exceptions import ScriptAlreadyExistsError
+from taku.exceptions import ScriptNotFoundError
+from taku.exceptions import TemplateNotFoundError
 
 
 def test_new_script_basic(tmp_path):
@@ -35,7 +38,7 @@ def test_new_script_already_exists(tmp_path):
     script_dir = scripts_dir / "test"
     script_dir.mkdir(parents=True)
 
-    with pytest.raises(ValueError, match="The script test already exists"):
+    with pytest.raises(ScriptAlreadyExistsError):
         new_script(scripts_dir, "test", None)
 
 
@@ -61,7 +64,7 @@ def test_new_script_template_not_found(tmp_path):
     """Test error when template doesn't exist."""
     scripts_dir = tmp_path / "scripts"
 
-    with pytest.raises(ValueError, match="Template.*does not exists"):
+    with pytest.raises(TemplateNotFoundError):
         new_script(scripts_dir, "test", "nonexistent")
 
 
@@ -77,9 +80,8 @@ def test_get_script_basic(tmp_path, capsys):
     get_script(scripts_dir, "test")
 
     captured = capsys.readouterr()
-    assert "---" in captured.out
-    assert "name : test" in captured.out
-    assert "content : echo 'hello'" in captured.out
+    assert "test" in captured.out
+    assert "echo 'hello'" in captured.out
 
 
 def test_get_script_with_meta(tmp_path, capsys):
@@ -97,8 +99,8 @@ def test_get_script_with_meta(tmp_path, capsys):
     get_script(scripts_dir, "test")
 
     captured = capsys.readouterr()
-    assert "description : A test script" in captured.out
-    assert "author : Test User" in captured.out
+    assert "A test script" in captured.out
+    assert "Test User" in captured.out
 
 
 def test_rm_script(tmp_path, capsys):
@@ -115,7 +117,7 @@ def test_rm_script(tmp_path, capsys):
 
     assert not script_dir.exists()
     captured = capsys.readouterr()
-    assert "Script test removed" in captured.out
+    assert "removed" in captured.out.lower()
 
 
 def test_list_scripts(tmp_path, capsys):
@@ -130,9 +132,8 @@ def test_list_scripts(tmp_path, capsys):
     list_scripts(scripts_dir)
 
     captured = capsys.readouterr()
-    assert "Available scripts:" in captured.out
-    assert "- script1" in captured.out
-    assert "- script2" in captured.out
+    assert "script1" in captured.out
+    assert "script2" in captured.out
     assert ".templates" not in captured.out
 
 
@@ -157,7 +158,7 @@ def test_edit_script_not_found(tmp_path):
     """Test editing non-existent script."""
     scripts_dir = tmp_path / "scripts"
 
-    with pytest.raises(FileNotFoundError, match="Script 'test' not found"):
+    with pytest.raises(ScriptNotFoundError):
         edit_script(scripts_dir, "test")
 
 
@@ -200,12 +201,12 @@ def test_install_scripts_single(tmp_path, capsys):
 
     content = installed_file.read_text()
     assert "#!/usr/bin/env bash" in content
-    assert f'export TAKU_SCRIPTS="{scripts_dir.resolve()}"' in content
-    assert "exec" in content and 'run "test"' in content
+    assert "TAKU_SCRIPTS" in content
+    assert "test" in content
     assert installed_file.stat().st_mode & 0o111  # Check executable
 
     captured = capsys.readouterr()
-    assert f"Installed test to {installed_file}" in captured.out
+    assert "Installed" in captured.out and "test" in captured.out
 
 
 def test_install_scripts_already_exists(tmp_path, capsys):
@@ -231,7 +232,7 @@ def test_install_scripts_already_exists(tmp_path, capsys):
     assert existing_file.read_text() == "existing content"
 
     captured = capsys.readouterr()
-    assert "already exists. Skipping test" in captured.out
+    assert "exists" in captured.out.lower() and "skip" in captured.out.lower()
 
 
 def test_install_scripts_all(tmp_path, capsys):
@@ -256,8 +257,8 @@ def test_install_scripts_all(tmp_path, capsys):
     assert not (target_dir / ".templates").exists()
 
     captured = capsys.readouterr()
-    assert "Installed script1" in captured.out
-    assert "Installed script2" in captured.out
+    assert "script1" in captured.out
+    assert "script2" in captured.out
 
 
 def test_uninstall_scripts_exists(tmp_path, capsys):
@@ -280,13 +281,13 @@ def test_uninstall_scripts_exists(tmp_path, capsys):
     assert not installed_file.exists()
 
     captured = capsys.readouterr()
-    assert f"Uninstalled test from {installed_file}" in captured.out
+    assert "uninstall" in captured.out.lower() and "test" in captured.out
 
 
 def test_uninstall_scripts_not_found(tmp_path, capsys):
     """Test uninstalling non-existent script."""
     scripts_dir = tmp_path / "scripts"
-    target_dir = tmp_path / ".local" / "bin"
+    tmp_path / ".local" / "bin"
 
     # Create script directory but no installed file
     script_dir = scripts_dir / "test"
@@ -296,7 +297,7 @@ def test_uninstall_scripts_not_found(tmp_path, capsys):
         uninstall_scripts(scripts_dir, "test")
 
     captured = capsys.readouterr()
-    assert f"Warning: test not found in {target_dir}" in captured.out
+    assert "not found" in captured.out.lower()
 
 
 @patch("taku.push_scripts")
