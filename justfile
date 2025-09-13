@@ -4,6 +4,9 @@
 @fmt:
     uvx ruff format
 
+@test:
+    uv run pytest tests
+
 # Run pre-commit
 [group('lint')]
 @pre-commit *ARGS:

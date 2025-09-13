@@ -103,13 +103,13 @@ def get_script(
 ):
     """Get details about an existing script"""
     _, script_path = _resolve_script(scripts, name, raise_error=True)
-    meta = script_path / "meta.toml"
+    meta = script_path.parent / "meta.toml"
     data = {"name": name}
     if meta.exists():
-        data |= tomllib.load(meta)
+        data |= tomllib.loads(meta.read_text())
     data["content"] = script_path.read_text()
     print("---")
-    for key, value in data:
+    for key, value in data.items():
         print(key, ":", value)
 
 
