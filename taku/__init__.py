@@ -9,18 +9,28 @@ from pathlib import Path
 from string import Template
 from typing import Annotated
 
+# Ensure unbuffered output for immediate display
+os.environ.setdefault("PYTHONUNBUFFERED", "1")
+
 from .command_parser import ArgSpec
 from .command_parser import command
 from .exceptions import ScriptAlreadyExistsError
 from .exceptions import ScriptNotFoundError
 from .exceptions import TemplateNotFoundError
 
+try:
+    from rich_argparse import RichHelpFormatter
+
+    formatter_class = RichHelpFormatter
+except ImportError:
+    formatter_class = argparse.ArgumentDefaultsHelpFormatter
+
 
 parser = argparse.ArgumentParser(
     prog="taku",
     description="Manage and execute scripts with ease",
     epilog="For more information, visit https://github.com/Tobi-De/taku",
-    formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    formatter_class=formatter_class,
 )
 
 default_scripts_dir = os.getenv("TAKU_SCRIPTS", Path.home() / "scripts")

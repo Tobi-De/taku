@@ -25,6 +25,7 @@ classifiers = [
 ]
 dependencies = [  ]
 
+optional-dependencies.bling = [ "rich-argparse>=1.7.1" ]
 urls.Homepage = "https://github.com/Tobi-De/taku"
 urls.Issues = "https://github.com/Tobi-De/taku/issues"
 urls.Repository = "https://github.com/Tobi-De/taku"

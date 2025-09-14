@@ -2,10 +2,22 @@
 
 Simple script manager for creating, running, and syncing scripts.
 
+[![Publish Package](https://github.com/Tobi-De/taku-cli/actions/workflows/publish.yml/badge.svg)](https://github.com/Tobi-De/taku-cli/actions/workflows/publish.yml)
+[![PyPI - Version](https://img.shields.io/pypi/v/taku-cli.svg)](https://pypi.org/project/taku-cli)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/taku-cli.svg)](https://pypi.org/project/taku-cli)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Tobi-De/taku-cli/blob/main/LICENSE.txt)
+[![Status](https://img.shields.io/pypi/status/taku-cli.svg)](https://pypi.org/project/taku-cli)
+
 ## Installation
 
 ```bash
 uv tool install taku-cli
+```
+
+or
+
+```bash
+uv tool install "taku-cli[bling]" # just add some colors
 ```
 
 ## Quick Start

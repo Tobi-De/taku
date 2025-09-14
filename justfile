@@ -1,3 +1,6 @@
+@install:
+    uv sync --extra bling
+
 @r *ARGS:
     uv run taku --scripts scripts  {{ ARGS }}
 
