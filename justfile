@@ -30,7 +30,7 @@ bumpver VERSION:
     uvx bump-my-version bump {{ VERSION }}
     just logchanges
     [ -z "$(git status --porcelain)" ] && { echo "No changes to commit."; git push && git push --tags; exit 0; }
-    version="$(uv run bump-my-version show current_version)"
+    version="$(uvx bump-my-version show current_version)"
     git add -A
     git commit -m "Generate changelog for version ${version}"
     git tag -f "v${version}"

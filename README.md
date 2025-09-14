@@ -5,7 +5,7 @@ Simple script manager for creating, running, and syncing scripts.
 ## Installation
 
 ```bash
-uv tool install taku
+uv tool install taku-cli
 ```
 
 ## Quick Start
