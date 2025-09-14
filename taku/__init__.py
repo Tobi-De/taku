@@ -55,7 +55,9 @@ def _resolve_script(
 
 
 def _list_scripts(scripts: Path) -> list[str]:
-    return [s.name for s in scripts.iterdir() if s.name != ".templates"]
+    return [
+        s.name for s in scripts.iterdir() if not s.name.startswith(".") and s.is_dir()
+    ]
 
 
 @cmd("list")
