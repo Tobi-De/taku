@@ -2,11 +2,12 @@
 
 Simple script manager for creating, running, and syncing scripts.
 
-[![Publish Package](https://github.com/Tobi-De/taku-cli/actions/workflows/publish.yml/badge.svg)](https://github.com/Tobi-De/taku-cli/actions/workflows/publish.yml)
-[![PyPI - Version](https://img.shields.io/pypi/v/taku-cli.svg)](https://pypi.org/project/taku-cli)
+[![Publish to PyPI](https://github.com/Tobi-De/taku/actions/workflows/publish.yml/badge.svg)](https://github.com/Tobi-De/taku/actions/workflows/publish.yml)[![PyPI - Version](https://img.shields.io/pypi/v/taku-cli.svg)](https://pypi.org/project/taku-cli)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/taku-cli.svg)](https://pypi.org/project/taku-cli)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Tobi-De/taku-cli/blob/main/LICENSE.txt)
 [![Status](https://img.shields.io/pypi/status/taku-cli.svg)](https://pypi.org/project/taku-cli)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 
 ## Installation
 
