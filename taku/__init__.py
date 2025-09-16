@@ -17,6 +17,7 @@ from .command_parser import command
 from .exceptions import ScriptAlreadyExistsError
 from .exceptions import ScriptNotFoundError
 from .exceptions import TemplateNotFoundError
+from .run import run_script, _resolve_script, default_scripts_dir
 
 try:
     from rich_argparse import RichHelpFormatter
@@ -33,7 +34,6 @@ parser = argparse.ArgumentParser(
     formatter_class=formatter_class,
 )
 
-default_scripts_dir = os.getenv("TAKU_SCRIPTS", Path.home() / "scripts")
 parser.add_argument(
     "--scripts",
     "-s",
@@ -52,22 +52,13 @@ def main() -> None:
     args.func(**vars(args))
 
 
-def _resolve_script(
-    scripts: Path, name: str, raise_error: bool = False
-) -> tuple[str, Path]:
-    script_name = name.split(".")[0]
-    script_path = scripts / script_name / script_name
-
-    if raise_error and not script_path.exists():
-        raise ScriptNotFoundError(f"Script '{name}' not found")
-
-    return script_name, script_path
-
-
 def _list_scripts(scripts: Path) -> list[str]:
     return [
         s.name for s in scripts.iterdir() if not s.name.startswith(".") and s.is_dir()
     ]
+
+
+cmd("run")(run_script)
 
 
 @cmd("list", aliases=["ls"])
@@ -168,30 +159,6 @@ def edit_script(
 
     editor = os.environ.get("EDITOR") or os.environ.get("VISUAL") or "vi"
     subprocess.run([editor, str(script_path.resolve())])
-
-
-@cmd("run")
-def run_script(
-    scripts: Annotated[Path, ArgSpec(ignore=True)],
-    name: Annotated[str, ArgSpec(help="Name of the script to run")],
-    args: Annotated[
-        list[str] | None,
-        "args",
-        ArgSpec(nargs=argparse.REMAINDER, help="Arguments to pass to the script"),
-    ] = None,
-):
-    """Run a script"""
-    args = args or []
-    _, script_path = _resolve_script(scripts, name)
-    process = subprocess.run(
-        [str(script_path.resolve())] + args,
-        stdin=None,
-        stdout=None,
-        stderr=None,
-        check=False,
-        text=True,
-    )
-    return process.returncode
 
 
 @cmd("install")

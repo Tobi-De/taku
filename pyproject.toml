@@ -30,6 +30,7 @@ urls.Homepage = "https://github.com/Tobi-De/taku"
 urls.Issues = "https://github.com/Tobi-De/taku/issues"
 urls.Repository = "https://github.com/Tobi-De/taku"
 scripts.taku = "taku:main"
+scripts.takux = "taku.run:main"
 
 [dependency-groups]
 dev = [ "pytest>=8.4.2" ]
