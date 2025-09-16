@@ -74,11 +74,15 @@ def command(subparsers: argparse._SubParsersAction):
                 if type_ in auto_types:
                     arg_kwargs["type"] = type_
 
+                if arg_spec and arg_spec.nargs:
+                    arg_kwargs["nargs"] = arg_spec.nargs
+
                 if arg_spec:
                     arg_kwargs |= {
                         k: v
                         for k, v in asdict(arg_spec).items()
-                        if v is not NOT_SET and k not in ["default", "type", "ignore"]
+                        if v is not NOT_SET
+                        and k not in ["default", "type", "ignore", "nargs"]
                     }
 
                 subparser.add_argument(*arg_names, **arg_kwargs)
