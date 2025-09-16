@@ -337,7 +337,7 @@ def test_sync_scripts_push(mock_pull, mock_push, tmp_path):
     """Test sync with push option."""
     scripts_dir = tmp_path / "scripts"
 
-    sync_scripts(scripts_dir, push=True, pull=False)
+    sync_scripts(scripts_dir, push=True)
 
     mock_push.assert_called_once_with(scripts_dir)
     mock_pull.assert_not_called()
@@ -349,22 +349,10 @@ def test_sync_scripts_pull(mock_pull, mock_push, tmp_path):
     """Test sync with pull option."""
     scripts_dir = tmp_path / "scripts"
 
-    sync_scripts(scripts_dir, push=False, pull=True)
+    sync_scripts(scripts_dir)
 
     mock_pull.assert_called_once_with(scripts_dir)
     mock_push.assert_not_called()
-
-
-@patch("taku.push_scripts")
-@patch("taku.pull_scripts")
-def test_sync_scripts_both(mock_pull, mock_push, tmp_path):
-    """Test sync with both push and pull."""
-    scripts_dir = tmp_path / "scripts"
-
-    sync_scripts(scripts_dir, push=True, pull=True)
-
-    mock_push.assert_called_once_with(scripts_dir)
-    mock_pull.assert_called_once_with(scripts_dir)
 
 
 @patch("taku.systemd_install")

@@ -266,17 +266,12 @@ def sync_scripts(
         "--push",
         ArgSpec(action="store_true", help="Push local changes to remote"),
     ] = False,
-    pull: Annotated[
-        bool,
-        "--pull",
-        ArgSpec(action="store_true", help="Pull remote changes to local"),
-    ] = False,
 ):
     """Sync scripts"""
     if push:
         push_scripts(scripts)
-    if pull:
-        pull_scripts(scripts)
+        return
+    pull_scripts(scripts)
 
 
 def push_scripts(scripts: Path):
@@ -401,7 +396,7 @@ Description=Taku automatic script sync
 
 [Service]
 Type=oneshot
-ExecStart={exec_path} --scripts {scripts} sync --pull
+ExecStart={exec_path} --scripts {scripts} sync
 
 """
 
