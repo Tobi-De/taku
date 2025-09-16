@@ -70,7 +70,7 @@ def _list_scripts(scripts: Path) -> list[str]:
     ]
 
 
-@cmd("list")
+@cmd("list", aliases=["ls"])
 def list_scripts(scripts: Annotated[Path, ArgSpec(ignore=True)]):
     """List all available scripts"""
     print("Available scripts:")
@@ -175,7 +175,7 @@ def run_script(
     scripts: Annotated[Path, ArgSpec(ignore=True)],
     name: Annotated[str, ArgSpec(help="Name of the script to run")],
     args: Annotated[
-        list[str],
+        list[str] | None,
         "args",
         ArgSpec(nargs=argparse.REMAINDER, help="Arguments to pass to the script"),
     ] = None,
