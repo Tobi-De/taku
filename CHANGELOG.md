@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.4] - 2025-09-17
+
+### 🚀 Features
+
+- Added option to only print script content
+
 ## [0.2.3] - 2025-09-17
 
 ### ⚡ Performance
