@@ -245,7 +245,10 @@ def sync_scripts(
         bool,
         "--push",
         "-p",
-        ArgSpec(action="store_true", help="Push local changes to remote"),
+        ArgSpec(
+            action="store_true",
+            help="Push local changes to remote, only works on git repo",
+        ),
     ] = False,
 ):
     """Sync scripts"""
@@ -257,7 +260,6 @@ def sync_scripts(
 
 def push_scripts(scripts: Path):
     if not is_git_repo(scripts):
-        print(f"{scripts} is not a git repo, nothing to sync")
         return
 
     try:
@@ -268,24 +270,21 @@ def push_scripts(scripts: Path):
             check=True,
         )
 
-        if result.stdout.strip():
-            subprocess.run(["git", "-C", str(scripts), "add", "."], check=True)
-            subprocess.run(
-                [
-                    "git",
-                    "-C",
-                    str(scripts),
-                    "commit",
-                    "-m",
-                    "Auto-sync: Update scripts",
-                ],
-                check=True,
-            )
-            print("Committed local changes")
-        else:
-            print("No local changes to commit")
+        if not result.stdout.strip():
             return
-
+        subprocess.run(["git", "-C", str(scripts), "add", "."], check=True)
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(scripts),
+                "commit",
+                "-m",
+                "Auto-sync: Update scripts",
+            ],
+            check=True,
+        )
+        print("Committed local changes")
         subprocess.run(["git", "-C", str(scripts), "push"], check=True)
         print("Successfully pushed changes to remote")
 
@@ -296,7 +295,6 @@ def push_scripts(scripts: Path):
 
 def pull_scripts(scripts: Path):
     if not is_git_repo(scripts):
-        print(f"{scripts} is not a git repo, nothing to sync")
         return
 
     try:
@@ -306,7 +304,8 @@ def pull_scripts(scripts: Path):
             text=True,
             check=True,
         )
-        if result.stdout.strip():
+        stashed = bool(result.stdout.strip())
+        if stashed:
             print(
                 "Warning: You have uncommitted local changes. Stashing them before pull."
             )
@@ -322,9 +321,6 @@ def pull_scripts(scripts: Path):
                 ],
                 check=True,
             )
-            stashed = True
-        else:
-            stashed = False
 
         if subprocess.run(["git", "-C", str(scripts), "pull"]).returncode == 0:
             print("Successfully pulled changes from remote")
