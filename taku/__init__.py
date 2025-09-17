@@ -273,6 +273,7 @@ def push_scripts(scripts: Path):
             print("Committed local changes")
         else:
             print("No local changes to commit")
+            return
 
         subprocess.run(["git", "-C", str(scripts), "push"], check=True)
         print("Successfully pushed changes to remote")
