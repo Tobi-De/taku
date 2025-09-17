@@ -121,14 +121,24 @@ def new_script(
 def get_script(
     scripts: Annotated[Path, ArgSpec(ignore=True)],
     name: Annotated[str, ArgSpec(help="Name of the script")],
+    script: Annotated[
+        bool,
+        "--script",
+        "-s",
+        ArgSpec(action="store_true", help="Print only script content"),
+    ] = False,
 ):
     """Get details about an existing script"""
     _, script_path = _resolve_script(scripts, name, raise_error=True)
+    content = script_path.read_text()
+    if script:
+        print(content)
+        return
     meta = script_path.parent / "meta.toml"
     data = {"name": name}
     if meta.exists():
         data |= tomllib.loads(meta.read_text())
-    data["content"] = script_path.read_text()
+    data["content"] = content
     print("---")
     for key, value in data.items():
         print(key, ":", value)
@@ -234,6 +244,7 @@ def sync_scripts(
     push: Annotated[
         bool,
         "--push",
+        "-p",
         ArgSpec(action="store_true", help="Push local changes to remote"),
     ] = False,
 ):
@@ -336,10 +347,16 @@ def pull_scripts(scripts: Path):
 def systemd_manage(
     scripts: Annotated[Path, ArgSpec(ignore=True)],
     install: Annotated[
-        bool, "--install", ArgSpec(action="store_true", help="Install systemd service")
+        bool,
+        "--install",
+        "-i",
+        ArgSpec(action="store_true", help="Install systemd service"),
     ] = False,
     remove: Annotated[
-        bool, "--remove", ArgSpec(action="store_true", help="Remove systemd service")
+        bool,
+        "--remove",
+        "-r",
+        ArgSpec(action="store_true", help="Remove systemd service"),
     ] = False,
 ):
     """Systemd install and remove service"""
