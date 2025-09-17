@@ -114,6 +114,7 @@ def new_script(
     if "." in name:
         (script.parent / script_name).symlink_to(script.name)
     print(f"script {name} created")
+    push_scripts(scripts)
 
 
 @cmd("get")
@@ -144,6 +145,7 @@ def rm_script(
     uninstall_scripts(scripts, name)
     shutil.rmtree(script_folder, ignore_errors=True)
     print(f"Script {script_name} removed")
+    push_scripts(scripts)
 
 
 @cmd("edit")
@@ -159,6 +161,7 @@ def edit_script(
 
     editor = os.environ.get("EDITOR") or os.environ.get("VISUAL") or "vi"
     subprocess.run([editor, str(script_path.resolve())])
+    push_scripts(scripts)
 
 
 @cmd("install")
@@ -176,7 +179,7 @@ def install_scripts(
         _resolve_script(scripts, name, raise_error=True)
 
     to_install = [name] if name != "all" else _list_scripts(scripts)
-    exec_path = Path(sys.executable).parent / "taku"
+    exec_path = Path(sys.executable).parent / "takux"
 
     for script_name in to_install:
         target_file = target_dir / script_name
@@ -191,7 +194,7 @@ def install_scripts(
         content = f"""#!/usr/bin/env bash
 # Shim for taku script {script_name}
 export TAKU_SCRIPTS="{scripts.resolve()}"
-exec {exec_path} run "{script_name}" "$@"
+exec {exec_path} "{script_name}" "$@"
 """
         target_file.write_text(content)
         target_file.chmod(
@@ -388,20 +391,19 @@ WantedBy=timers.target
     timer_file.write_text(timer_content)
     subprocess.run(["systemctl", "--user", "daemon-reload"], check=True)
     subprocess.run(
-        ["systemctl", "--user", "enable", "--now", service_file.name], check=True
-    )
-    subprocess.run(
         ["systemctl", "--user", "enable", "--now", timer_file.name], check=True
     )
     print("Taku systemd service and timer installed and enabled.")
 
 
 def systemd_remove():
+    subprocess.run(
+        ["systemctl", "--user", "disable", "--now", timer_file.name], check=False
+    )
     for name, f in {"timer": timer_file, "service": service_file}.items():
         if not f.exists():
             print(f"Taku {name} does not exist.")
             continue
-        subprocess.run(["systemctl", "--user", "disable", "--now", f.name], check=False)
         f.unlink()
         print(f"Taku {name} removed.")
     subprocess.run(["systemctl", "--user", "daemon-reload"], check=True)

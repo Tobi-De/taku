@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [unreleased]
+
+### 🚀 Features
+
+- Added takux
+
 ## [0.2.1] - 2025-09-16
 
 ### 🚀 Features

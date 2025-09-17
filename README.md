@@ -46,7 +46,7 @@ taku run hello
 - `taku install <name|all>` - Install script to `~/.local/bin`
 - `taku uninstall <name|all>` - Remove script from `~/.local/bin`
 - `taku sync --push` - Commit and push changes to git
-- `taku sync --pull` - Pull changes from git
+- `taku sync` - Pull changes from git
 - `taku systemd --install` - Install systemd timer for auto-sync
 - `taku systemd --remove` - Remove systemd timer
 
