@@ -9,8 +9,6 @@ from taku import list_scripts
 from taku import new_script
 from taku import rm_script
 from taku import run_script
-from taku import sync_scripts
-from taku import systemd_manage
 from taku import uninstall_scripts
 from taku.exceptions import ScriptAlreadyExistsError
 from taku.exceptions import ScriptNotFoundError
@@ -329,51 +327,3 @@ def test_uninstall_scripts_not_found(tmp_path, capsys):
 
     captured = capsys.readouterr()
     assert "not found" in captured.out.lower()
-
-
-@patch("taku.push_scripts")
-@patch("taku.pull_scripts")
-def test_sync_scripts_push(mock_pull, mock_push, tmp_path):
-    """Test sync with push option."""
-    scripts_dir = tmp_path / "scripts"
-
-    sync_scripts(scripts_dir, push=True)
-
-    mock_push.assert_called_once_with(scripts_dir)
-    mock_pull.assert_not_called()
-
-
-@patch("taku.push_scripts")
-@patch("taku.pull_scripts")
-def test_sync_scripts_pull(mock_pull, mock_push, tmp_path):
-    """Test sync with pull option."""
-    scripts_dir = tmp_path / "scripts"
-
-    sync_scripts(scripts_dir)
-
-    mock_pull.assert_called_once_with(scripts_dir)
-    mock_push.assert_not_called()
-
-
-@patch("taku.systemd_install")
-@patch("taku.systemd_remove")
-def test_systemd_manage_install(mock_remove, mock_install, tmp_path):
-    """Test systemd management with install."""
-    scripts_dir = tmp_path / "scripts"
-
-    systemd_manage(scripts_dir, install=True, remove=False)
-
-    mock_install.assert_called_once_with(scripts_dir)
-    mock_remove.assert_not_called()
-
-
-@patch("taku.systemd_install")
-@patch("taku.systemd_remove")
-def test_systemd_manage_remove(mock_remove, mock_install, tmp_path):
-    """Test systemd management with remove."""
-    scripts_dir = tmp_path / "scripts"
-
-    systemd_manage(scripts_dir, install=False, remove=True)
-
-    mock_remove.assert_called_once()
-    mock_install.assert_not_called()

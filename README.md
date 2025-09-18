@@ -33,22 +33,21 @@ taku edit hello
 # Run a script
 taku run hello
 
+# Shortcut to running a script
+tax hello
+
 ```
 
 ## Commands
 
 - `taku new <name> [--template/-t <name>]` - Create a new script from template
-- `taku list` - List all scripts
+- `taku list` - List all scripts, add `-t` to also list templates
 - `taku get <name>` - Show script details
-- `taku edit <name>` - Edit a script
+- `taku edit <name>` - Edit a script (auto-pushes to git if repository)
 - `taku run <name> [args...]` - Run a script with optional arguments
-- `taku rm <name>` - Remove a script
+- `taku rm <name>` - Remove a script (auto-pushes to git if repository)
 - `taku install <name|all>` - Install script to `~/.local/bin`
 - `taku uninstall <name|all>` - Remove script from `~/.local/bin`
-- `taku sync --push` - Commit and push changes to git
-- `taku sync` - Pull changes from git
-- `taku systemd --install` - Install systemd timer for auto-sync
-- `taku systemd --remove` - Remove systemd timer
 
 ## Configuration
 
@@ -89,3 +88,20 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 ```
+
+## Git Integration
+
+If your `scripts` directory is a Git repository, **taku** will automatically commit and push changes whenever you edit or remove scripts.
+This keeps your changes synced, but to complete the auto-sync feature you also need to set up each machine to regularly pull the latest scripts.
+
+1. Open your crontab:
+
+   ```bash
+   crontab -e
+   ```
+
+2. Add a line to pull updates every 15 minutes (adjust the path to your scripts directory):
+
+   ```bash
+   */15 * * * * cd /path/to/your/scripts && git pull --rebase >/dev/null 2>&1
+   ```

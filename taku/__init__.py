@@ -5,6 +5,7 @@ import stat
 import subprocess
 import sys
 import tomllib
+from contextlib import suppress
 from pathlib import Path
 from string import Template
 from typing import Annotated
@@ -252,31 +253,10 @@ def uninstall_scripts(
             print(f"Warning: {script_name} not found in {target_dir}")
 
 
-@cmd("sync")
-def sync_scripts(
-    scripts: Annotated[Path, ArgSpec(ignore=True)],
-    push: Annotated[
-        bool,
-        "--push",
-        "-p",
-        ArgSpec(
-            action="store_true",
-            help="Push local changes to remote, only works on git repo",
-        ),
-    ] = False,
-):
-    """Sync scripts"""
-    if push:
-        push_scripts(scripts)
-        return
-    pull_scripts(scripts)
-
-
 def push_scripts(scripts: Path):
-    if not is_git_repo(scripts):
-        return
-
-    try:
+    """Auto-push changes to git if it's a git repo with changes"""
+    with suppress(subprocess.CalledProcessError):
+        # Check if it's a git repo and has changes in one go
         result = subprocess.run(
             ["git", "-C", str(scripts), "status", "--porcelain"],
             capture_output=True,
@@ -284,171 +264,18 @@ def push_scripts(scripts: Path):
             check=True,
         )
 
+        # If no output, no changes to commit
         if not result.stdout.strip():
             return
+
+        # Add, commit, and push
         subprocess.run(["git", "-C", str(scripts), "add", "."], check=True)
         subprocess.run(
-            [
-                "git",
-                "-C",
-                str(scripts),
-                "commit",
-                "-m",
-                "Auto-sync: Update scripts",
-            ],
+            ["git", "-C", str(scripts), "commit", "-m", "Auto-sync: Update scripts"],
             check=True,
         )
-        print("Committed local changes")
         subprocess.run(["git", "-C", str(scripts), "push"], check=True)
         print("Successfully pushed changes to remote")
-
-    except subprocess.CalledProcessError as e:
-        print(f"Error during push: {e}")
-        return
-
-
-def pull_scripts(scripts: Path):
-    if not is_git_repo(scripts):
-        return
-
-    try:
-        result = subprocess.run(
-            ["git", "-C", str(scripts), "status", "--porcelain"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        stashed = bool(result.stdout.strip())
-        if stashed:
-            print(
-                "Warning: You have uncommitted local changes. Stashing them before pull."
-            )
-            subprocess.run(
-                [
-                    "git",
-                    "-C",
-                    str(scripts),
-                    "stash",
-                    "push",
-                    "-m",
-                    "Auto-stash before pull",
-                ],
-                check=True,
-            )
-
-        if subprocess.run(["git", "-C", str(scripts), "pull"]).returncode == 0:
-            print("Successfully pulled changes from remote")
-
-        if stashed:
-            try:
-                subprocess.run(["git", "-C", str(scripts), "stash", "pop"], check=True)
-                print("Restored stashed local changes")
-            except subprocess.CalledProcessError:
-                print(
-                    "Warning: Could not restore stashed changes. Check 'git stash list' manually."
-                )
-
-    except subprocess.CalledProcessError as e:
-        print(f"Error during pull: {e}")
-        return
-
-
-@cmd("systemd")
-def systemd_manage(
-    scripts: Annotated[Path, ArgSpec(ignore=True)],
-    install: Annotated[
-        bool,
-        "--install",
-        "-i",
-        ArgSpec(action="store_true", help="Install systemd service"),
-    ] = False,
-    remove: Annotated[
-        bool,
-        "--remove",
-        "-r",
-        ArgSpec(action="store_true", help="Remove systemd service"),
-    ] = False,
-):
-    """Systemd install and remove service"""
-    if install:
-        systemd_install(scripts)
-    if remove:
-        systemd_remove()
-
-
-systemd_user_dir = Path.home() / ".config/systemd/user"
-service_file = systemd_user_dir / "taku-sync.service"
-timer_file = systemd_user_dir / "taku-sync.timer"
-
-
-def systemd_install(scripts: Path):
-    if not is_git_repo(scripts):
-        print(f"{scripts} is not a git repo, nothing to sync")
-        return
-
-    systemd_user_dir.mkdir(parents=True, exist_ok=True)
-
-    service_content = """\
-[Unit]
-Description=Taku automatic script sync
-
-[Service]
-Type=oneshot
-ExecStart={exec_path} --scripts {scripts} sync
-
-"""
-
-    timer_content = """\
-[Unit]
-Description=Taku automatic script sync timer
-
-[Timer]
-OnBootSec=1min
-OnUnitActiveSec=15min
-Persistent=true
-
-[Install]
-WantedBy=timers.target
-"""
-
-    service_file.write_text(
-        service_content.format(
-            scripts=scripts, exec_path=Path(sys.executable).parent / "taku"
-        )
-    )
-    timer_file.write_text(timer_content)
-    subprocess.run(["systemctl", "--user", "daemon-reload"], check=True)
-    subprocess.run(
-        ["systemctl", "--user", "enable", "--now", timer_file.name], check=True
-    )
-    print("Taku systemd service and timer installed and enabled.")
-
-
-def systemd_remove():
-    subprocess.run(
-        ["systemctl", "--user", "disable", "--now", timer_file.name], check=False
-    )
-    for name, f in {"timer": timer_file, "service": service_file}.items():
-        if not f.exists():
-            print(f"Taku {name} does not exist.")
-            continue
-        f.unlink()
-        print(f"Taku {name} removed.")
-    subprocess.run(["systemctl", "--user", "daemon-reload"], check=True)
-
-
-def is_git_repo(dir_path: Path) -> bool:
-    try:
-        result = subprocess.run(
-            ["git", "-C", str(dir_path), "rev-parse", "--is-inside-work-tree"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            check=True,
-        )
-        output = result.stdout.decode().strip()
-        return output == "true"
-    except subprocess.CalledProcessError:
-        return False
 
 
 if __name__ == "__main__":
