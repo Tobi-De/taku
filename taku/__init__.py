@@ -62,8 +62,23 @@ cmd("run")(run_script)
 
 
 @cmd("list", aliases=["ls"])
-def list_scripts(scripts: Annotated[Path, ArgSpec(ignore=True)]):
+def list_scripts(
+    scripts: Annotated[Path, ArgSpec(ignore=True)],
+    templates: Annotated[
+        bool,
+        "--templates",
+        "-t",
+        ArgSpec(action="store_true", help="List templates too"),
+    ] = False,
+):
     """List all available scripts"""
+    if templates:
+        print("Available templates:")
+        print(
+            "\n".join(
+                f"- {f.name}" for f in (scripts / ".templates").iterdir() if f.is_file()
+            )
+        )
     print("Available scripts:")
     print("\n".join(f"- {name}" for name in _list_scripts(scripts)))
 
@@ -114,7 +129,6 @@ def new_script(
     if "." in name:
         (script.parent / script_name).symlink_to(script.name)
     print(f"script {name} created")
-    push_scripts(scripts)
 
 
 @cmd("get")
