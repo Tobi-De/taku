@@ -23,20 +23,7 @@ uv tool install "taku-cli[bling]" # just add some colors
 
 ## Quick Start
 
-```bash
-# Create a new script
-taku new hello
-
-# Edit a script
-taku edit hello
-
-# Run a script
-taku run hello
-
-# Shortcut to running a script, tax stands for takux
-tax hello
-
-```
+[![asciicast](https://asciinema.org/a/741635.svg)](https://asciinema.org/a/741635)
 
 ## Commands
 
