@@ -10,6 +10,8 @@ from pathlib import Path
 from string import Template
 from typing import Annotated
 
+import tomli_w
+
 # Ensure unbuffered output for immediate display
 os.environ.setdefault("PYTHONUNBUFFERED", "1")
 
@@ -195,19 +197,34 @@ def install_scripts(
     name: Annotated[
         str, ArgSpec(help="Name of the script to install, use 'all' for all scripts")
     ],
+    install_name: Annotated[
+        str | None,
+        "--install-name",
+        "-i",
+        ArgSpec(
+            help="Optional name when installed in PATH, only used when installing a single script"
+        ),
+    ] = None,
 ):
     """Install a script to ~/.local/bin"""
     target_dir = Path.home() / ".local/bin"
     target_dir.mkdir(parents=True, exist_ok=True)
 
+    install_name = install_name or name
+
     if name != "all":
         _resolve_script(scripts, name, raise_error=True)
 
-    to_install = [name] if name != "all" else _list_scripts(scripts)
-    exec_path = Path(sys.executable).parent / "takux"
+    to_install = (
+        {name: install_name}
+        if name != "all"
+        else {s: s for s in _list_scripts(scripts)}
+    )
+    exec_path = Path(sys.executable).parent / "tax"
 
-    for script_name in to_install:
-        target_file = target_dir / script_name
+    for script_name, script_install_name in to_install.items():
+        target_file = target_dir / script_install_name
+        metadata_file = scripts / script_name / "meta.toml"
 
         if target_file.exists():
             print(
@@ -225,6 +242,11 @@ exec {exec_path} "{script_name}" "$@"
         target_file.chmod(
             target_file.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
         )
+        metadata = (
+            tomllib.loads(metadata_file.read_text()) if metadata_file.exists() else {}
+        )
+        metadata["install_name"] = script_install_name
+        metadata_file.write_text(tomli_w.dumps(metadata))
         print(f"Installed {script_name} to {target_file}")
 
 
@@ -244,9 +266,15 @@ def uninstall_scripts(
     to_uninstall = [name] if name != "all" else _list_scripts(scripts)
 
     for script_name in to_uninstall:
-        target_file = target_dir / script_name
+        metadata_file = scripts / script_name / "meta.toml"
+        metadata = (
+            tomllib.loads(metadata_file.read_text()) if metadata_file.exists() else {}
+        )
+        target_file = target_dir / metadata.get("install_name", script_name)
 
         if target_file.exists():
+            metadata.pop("install_name", None)
+            metadata_file.write_text(tomli_w.dumps(metadata))
             target_file.unlink()
             print(f"Uninstalled {script_name} from {target_file}")
         else:

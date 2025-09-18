@@ -23,14 +23,16 @@ classifiers = [
   "Topic :: System :: Shells",
   "Topic :: Utilities",
 ]
-dependencies = [  ]
+dependencies = [
+  "tomli-w>=1.2",
+]
 
 optional-dependencies.bling = [ "rich-argparse>=1.7.1" ]
 urls.Homepage = "https://github.com/Tobi-De/taku"
 urls.Issues = "https://github.com/Tobi-De/taku/issues"
 urls.Repository = "https://github.com/Tobi-De/taku"
 scripts.taku = "taku:main"
-scripts.takux = "taku.run:main"
+scripts.tax = "taku.run:main"
 
 [dependency-groups]
 dev = [ "pytest>=8.4.2" ]

@@ -33,7 +33,7 @@ taku edit hello
 # Run a script
 taku run hello
 
-# Shortcut to running a script
+# Shortcut to running a script, tax stands for takux
 tax hello
 
 ```
@@ -103,5 +103,5 @@ This keeps your changes synced, but to complete the auto-sync feature you also n
 2. Add a line to pull updates every 15 minutes (adjust the path to your scripts directory):
 
    ```bash
-   */15 * * * * cd /path/to/your/scripts && git pull --rebase >/dev/null 2>&1
+   */15 * * * * cd /home/tobi/scripts && git pull --rebase >/dev/null 2>&1
    ```

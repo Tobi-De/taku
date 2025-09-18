@@ -100,12 +100,8 @@ def test_new_script_template_not_found(tmp_path):
 def test_get_script_basic(tmp_path, capsys):
     """Test getting script details."""
     scripts_dir = tmp_path / "scripts"
-    script_dir = scripts_dir / "test"
-    script_dir.mkdir(parents=True)
 
-    script_file = script_dir / "test"
-    script_file.write_text("echo 'hello'")
-
+    new_script(scripts_dir, "test", None, "echo 'hello'")
     get_script(scripts_dir, "test")
 
     captured = capsys.readouterr()
@@ -116,12 +112,11 @@ def test_get_script_basic(tmp_path, capsys):
 def test_get_script_with_meta(tmp_path, capsys):
     """Test getting script with metadata."""
     scripts_dir = tmp_path / "scripts"
+
+    new_script(scripts_dir, "test", None, "echo 'hello'")
+
+    # Add metadata manually since there's no function for this yet
     script_dir = scripts_dir / "test"
-    script_dir.mkdir(parents=True)
-
-    script_file = script_dir / "test"
-    script_file.write_text("echo 'hello'")
-
     meta_file = script_dir / "meta.toml"
     meta_file.write_text('description = "A test script"\nauthor = "Test User"')
 
@@ -135,13 +130,12 @@ def test_get_script_with_meta(tmp_path, capsys):
 def test_rm_script(tmp_path, capsys):
     """Test removing a script."""
     scripts_dir = tmp_path / "scripts"
+
+    new_script(scripts_dir, "test", None, "echo 'hello'")
     script_dir = scripts_dir / "test"
-    script_dir.mkdir(parents=True)
+    assert script_dir.exists()  # Verify it was created
 
-    script_file = script_dir / "test"
-    script_file.write_text("echo 'hello'")
-
-    with patch("taku.uninstall_scripts"):
+    with patch("taku.uninstall_scripts"), patch("taku.push_scripts"):
         rm_script(scripts_dir, "test")
 
     assert not script_dir.exists()
@@ -152,11 +146,12 @@ def test_rm_script(tmp_path, capsys):
 def test_list_scripts(tmp_path, capsys):
     """Test listing available scripts."""
     scripts_dir = tmp_path / "scripts"
-    scripts_dir.mkdir()
 
-    (scripts_dir / "script1").mkdir()
-    (scripts_dir / "script2").mkdir()
-    (scripts_dir / ".templates").mkdir()  # Should be ignored
+    new_script(scripts_dir, "script1", None, "echo 'script1'")
+    new_script(scripts_dir, "script2", None, "echo 'script2'")
+
+    # Create .templates directory (should be ignored in listing)
+    (scripts_dir / ".templates").mkdir(exist_ok=True)
 
     list_scripts(scripts_dir)
 
@@ -169,10 +164,10 @@ def test_list_scripts(tmp_path, capsys):
 # @patch("subprocess.run")
 # def test_edit_script(mock_run, tmp_path):
 #     """Test editing a script."""
+
 #     scripts_dir = tmp_path / "scripts"
 #     script_path = scripts_dir / "test" / "test"
-#     script_path.parent.mkdir(parents=True)
-#     script_path.write_text("echo 'hello'")
+#     new_script(scripts_dir, "test", None, "echo 'hello'")
 
 #     with patch.dict("os.environ", {"EDITOR": "nano"}):
 #         edit_script(scripts_dir, "test")
@@ -188,16 +183,20 @@ def test_edit_script_not_found(tmp_path):
     scripts_dir = tmp_path / "scripts"
 
     with pytest.raises(ScriptNotFoundError):
-        edit_script(scripts_dir, "test")
+        with patch(
+            "taku.push_scripts"
+        ):  # Mock push_scripts since we're testing error case
+            edit_script(scripts_dir, "test")
 
 
 @patch("subprocess.run")
 def test_run_script(mock_run, tmp_path):
     """Test running a script."""
     scripts_dir = tmp_path / "scripts"
+
+    # Use the actual new_script function to create the script
+    new_script(scripts_dir, "test", None, "echo 'hello'")
     script_path = scripts_dir / "test" / "test"
-    script_path.parent.mkdir(parents=True)
-    script_path.write_text("echo 'hello'")
 
     mock_process = Mock(returncode=0)
     mock_run.return_value = mock_process
@@ -216,11 +215,8 @@ def test_install_scripts_single(tmp_path, capsys):
     scripts_dir = tmp_path / "scripts"
     target_dir = tmp_path / ".local" / "bin"
 
-    # Create script
-    script_dir = scripts_dir / "test"
-    script_dir.mkdir(parents=True)
-    script_file = script_dir / "test"
-    script_file.write_text("echo 'hello'")
+    # Use the actual new_script function to create the script
+    new_script(scripts_dir, "test", None, "echo 'hello'")
 
     with patch("pathlib.Path.home", return_value=tmp_path):
         install_scripts(scripts_dir, "test")
@@ -234,8 +230,41 @@ def test_install_scripts_single(tmp_path, capsys):
     assert "test" in content
     assert installed_file.stat().st_mode & 0o111  # Check executable
 
+    # Check metadata file was created
+    meta_file = scripts_dir / "test" / "meta.toml"
+    assert meta_file.exists()
+
     captured = capsys.readouterr()
     assert "Installed" in captured.out and "test" in captured.out
+
+
+def test_install_scripts_with_custom_name(tmp_path, capsys):
+    """Test installing a script with custom install name."""
+    scripts_dir = tmp_path / "scripts"
+    target_dir = tmp_path / ".local" / "bin"
+
+    # Use the actual new_script function to create the script
+    new_script(scripts_dir, "test", None, "echo 'hello'")
+
+    with patch("pathlib.Path.home", return_value=tmp_path):
+        install_scripts(scripts_dir, "test", "my-custom-name")
+
+    # Should install with custom name
+    installed_file = target_dir / "my-custom-name"
+    assert installed_file.exists()
+    assert not (target_dir / "test").exists()
+
+    # Check metadata was updated
+    meta_file = scripts_dir / "test" / "meta.toml"
+    assert meta_file.exists()
+    import tomllib
+
+    with open(meta_file, "rb") as f:
+        metadata = tomllib.load(f)
+    assert metadata["install_name"] == "my-custom-name"
+
+    captured = capsys.readouterr()
+    assert "Installed test to" in captured.out and "my-custom-name" in captured.out
 
 
 def test_install_scripts_already_exists(tmp_path, capsys):
@@ -244,11 +273,8 @@ def test_install_scripts_already_exists(tmp_path, capsys):
     target_dir = tmp_path / ".local" / "bin"
     target_dir.mkdir(parents=True)
 
-    # Create script
-    script_dir = scripts_dir / "test"
-    script_dir.mkdir(parents=True)
-    script_file = script_dir / "test"
-    script_file.write_text("echo 'hello'")
+    # Use the actual new_script function to create the script
+    new_script(scripts_dir, "test", None, "echo 'hello'")
 
     # Create existing file
     existing_file = target_dir / "test"
@@ -269,14 +295,12 @@ def test_install_scripts_all(tmp_path, capsys):
     scripts_dir = tmp_path / "scripts"
     target_dir = tmp_path / ".local" / "bin"
 
-    # Create multiple scripts
-    for name in ["script1", "script2"]:
-        script_dir = scripts_dir / name
-        script_dir.mkdir(parents=True)
-        (script_dir / name).write_text(f"echo '{name}'")
+    # Use the actual new_script function to create multiple scripts
+    new_script(scripts_dir, "script1", None, "echo 'script1'")
+    new_script(scripts_dir, "script2", None, "echo 'script2'")
 
     # Create .templates (should be ignored)
-    (scripts_dir / ".templates").mkdir()
+    (scripts_dir / ".templates").mkdir(exist_ok=True)
 
     with patch("pathlib.Path.home", return_value=tmp_path):
         install_scripts(scripts_dir, "all")
@@ -296,34 +320,94 @@ def test_uninstall_scripts_exists(tmp_path, capsys):
     target_dir = tmp_path / ".local" / "bin"
     target_dir.mkdir(parents=True)
 
-    # Create script directory
-    script_dir = scripts_dir / "test"
-    script_dir.mkdir(parents=True)
-
-    # Create installed file
-    installed_file = target_dir / "test"
-    installed_file.write_text("#!/usr/bin/env bash\necho test")
+    # Use the actual new_script function and install_scripts function
+    new_script(scripts_dir, "test", None, "echo 'hello'")
 
     with patch("pathlib.Path.home", return_value=tmp_path):
+        install_scripts(scripts_dir, "test")
+        assert (target_dir / "test").exists()  # Verify it was installed
+
         uninstall_scripts(scripts_dir, "test")
 
-    assert not installed_file.exists()
+    assert not (target_dir / "test").exists()
 
     captured = capsys.readouterr()
     assert "uninstall" in captured.out.lower() and "test" in captured.out
 
 
+def test_uninstall_scripts_with_custom_name(tmp_path, capsys):
+    """Test uninstalling script that was installed with custom name."""
+    scripts_dir = tmp_path / "scripts"
+    target_dir = tmp_path / ".local" / "bin"
+    target_dir.mkdir(parents=True)
+
+    # Use the actual new_script function and install with custom name
+    new_script(scripts_dir, "test", None, "echo 'hello'")
+
+    with patch("pathlib.Path.home", return_value=tmp_path):
+        install_scripts(scripts_dir, "test", "my-custom-name")
+        assert (target_dir / "my-custom-name").exists()  # Verify it was installed
+
+        uninstall_scripts(scripts_dir, "test")
+
+    assert not (target_dir / "my-custom-name").exists()
+
+    # Check metadata was cleaned up
+    meta_file = scripts_dir / "test" / "meta.toml"
+    import tomllib
+
+    with open(meta_file, "rb") as f:
+        metadata = tomllib.load(f)
+    assert "install_name" not in metadata
+
+    captured = capsys.readouterr()
+    assert "uninstall" in captured.out.lower() and "my-custom-name" in captured.out
+
+
 def test_uninstall_scripts_not_found(tmp_path, capsys):
     """Test uninstalling non-existent script."""
     scripts_dir = tmp_path / "scripts"
-    tmp_path / ".local" / "bin"
 
-    # Create script directory but no installed file
-    script_dir = scripts_dir / "test"
-    script_dir.mkdir(parents=True)
+    # Use the actual new_script function but don't install it
+    new_script(scripts_dir, "test", None, "echo 'hello'")
 
     with patch("pathlib.Path.home", return_value=tmp_path):
         uninstall_scripts(scripts_dir, "test")
 
     captured = capsys.readouterr()
     assert "not found" in captured.out.lower()
+
+
+def test_install_scripts_metadata_handling(tmp_path):
+    """Test that metadata is properly handled during install/uninstall."""
+    scripts_dir = tmp_path / "scripts"
+
+    # Use the actual new_script function to create script
+    new_script(scripts_dir, "test", None, "echo 'hello'")
+
+    # Add existing metadata manually (since there's no function for this yet)
+    meta_file = scripts_dir / "test" / "meta.toml"
+    meta_file.write_text('description = "Test script"\nauthor = "Test User"')
+
+    with patch("pathlib.Path.home", return_value=tmp_path):
+        # Install with custom name
+        install_scripts(scripts_dir, "test", "custom-name")
+
+        # Check metadata was preserved and install_name added
+        import tomllib
+
+        with open(meta_file, "rb") as f:
+            metadata = tomllib.load(f)
+        assert metadata["description"] == "Test script"
+        assert metadata["author"] == "Test User"
+        assert metadata["install_name"] == "custom-name"
+
+        # Uninstall
+        uninstall_scripts(scripts_dir, "test")
+
+        # Check install_name was removed but other metadata preserved
+        with open(meta_file, "rb") as f:
+            metadata = tomllib.load(f)
+        assert metadata["description"] == "Test script"
+        assert metadata["author"] == "Test User"
+        assert "install_name" not in metadata

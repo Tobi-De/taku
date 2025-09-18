@@ -8,10 +8,12 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### 🚀 Features
 
+- Install script with custom name
 - Add templates listing
 
 ### 🚜 Refactor
 
+- Partially remove sync feature
 - Don't log when nothing need to be done
 
 ## [0.2.4] - 2025-09-17
