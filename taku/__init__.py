@@ -76,14 +76,14 @@ def list_scripts(
 ):
     """List all available scripts"""
     if templates:
-        print("Available templates:")
-        print(
-            "\n".join(
-                f"- {f.name}" for f in (scripts / ".templates").iterdir() if f.is_file()
-            )
-        )
-    print("Available scripts:")
-    print("\n".join(f"- {name}" for name in _list_scripts(scripts)))
+        templates_list = [
+            f"- {f.name}" for f in (scripts / ".templates").iterdir() if f.is_file()
+        ]
+        print(f"Available templates ({len(templates_list)}):")
+        print("\n".join(templates_list))
+    scripts_list = [f"- {s}" for s in _list_scripts(scripts)]
+    print(f"Available scripts ({len(scripts_list)}):")
+    print("\n".join(scripts_list))
 
 
 @cmd("new")
