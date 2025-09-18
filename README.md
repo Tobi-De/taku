@@ -94,6 +94,8 @@ if __name__ == "__main__":
 If your `scripts` directory is a Git repository, **taku** will automatically commit and push changes whenever you edit or remove scripts.
 This keeps your changes synced, but to complete the auto-sync feature you also need to set up each machine to regularly pull the latest scripts.
 
+### Using cron
+
 1. Open your crontab:
 
    ```bash
@@ -105,3 +107,45 @@ This keeps your changes synced, but to complete the auto-sync feature you also n
    ```bash
    */15 * * * * cd /home/tobi/scripts && git pull --rebase >/dev/null 2>&1
    ```
+
+### Using systemd-timers
+
+1. Create a service file `/etc/systemd/system/scripts-sync.service` (adjust the path to your scripts directory):
+
+   ```ini
+   [Unit]
+   Description=Synchronize scripts from remote
+
+   [Service]
+   Type=oneshot
+   WorkingDirectory=/home/tobi/scripts
+   ExecStart=/usr/bin/git pull --rebase
+   ```
+
+2. Create a timer file `/etc/systemd/system/scripts-sync.timer`:
+
+   ```ini
+   [Unit]
+   Description=Periodic synchronization of scripts
+
+   [Timer]
+   OnBootSec=1min
+   OnUnitActiveSec=15min
+   Persistent=true
+
+   [Install]
+   WantedBy=timers.target
+   ```
+
+3. Enable the timer:
+
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl enable --now scripts-sync.timer
+   ```
+
+This will run a `git pull --rebase` in your scripts directory every 15 minutes.
+
+
+
+
