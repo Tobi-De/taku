@@ -48,7 +48,7 @@ parser.add_argument(
     default=default_scripts_dir,
     help=f"Scripts directory, default to {default_scripts_dir}",
 )
-parser.add_argument("--version", action="version", version="%(prog)s 0.3.1")
+parser.add_argument("--version", action="version", version="%(prog)s 0.4.0")
 subparsers = parser.add_subparsers(dest="command", required=True)
 
 cmd = command(subparsers)
