@@ -260,6 +260,7 @@ exec {exec_path} "{script_name}" "$@"
         }
         metadata_file.write_text(tomli_w.dumps(metadata))
         print(f"Installed {script_name} to {target_file}")
+    push_scripts(scripts)
 
 
 @cmd("uninstall", formatter_class=formatter_class)
@@ -300,6 +301,7 @@ def uninstall_scripts(
             print(f"Uninstalled {script_name} from {target_file}")
         else:
             print(f"Warning: {script_name} not found in {target_dir}")
+    push_scripts(scripts)
 
 
 def push_scripts(scripts: Path):

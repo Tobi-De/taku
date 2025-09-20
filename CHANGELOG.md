@@ -4,12 +4,17 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.0] - 2025-09-20
+## [unreleased]
 
 ### 🚀 Features
 
 - Improved installation via metadata
 - Show count
+
+### 📚 Documentation
+
+- Demo video
+- Systemd timer example
 
 ## [0.3.0] - 2025-09-18
 
