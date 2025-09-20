@@ -325,7 +325,6 @@ def push_scripts(scripts: Path):
             ["git", "-C", str(scripts), "commit", "-m", "Auto-sync: Update scripts"],
             check=True,
         )
-        subprocess.run(["git", "-C", str(scripts), "pull", "--rebase"], check=True)
         subprocess.run(["git", "-C", str(scripts), "push"], check=True)
         print("Successfully pushed changes to remote")
 
