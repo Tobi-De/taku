@@ -97,7 +97,7 @@ This keeps your changes synced, but to complete the auto-sync feature you also n
 
 ### Using systemd-timers
 
-1. Create a service file `/etc/systemd/system/scripts-sync.service` (adjust the path to your scripts directory):
+1. Create a service file `/etc/systemd/system/scripts-sync.service` (adjust the path to your scripts director and User):
 
    ```ini
    [Unit]
@@ -105,6 +105,7 @@ This keeps your changes synced, but to complete the auto-sync feature you also n
 
    [Service]
    Type=oneshot
+   User=tobi
    WorkingDirectory=/home/tobi/scripts
    ExecStart=/usr/bin/git pull
    ```
