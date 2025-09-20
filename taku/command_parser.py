@@ -32,7 +32,11 @@ class ArgSpec:
 def command(subparsers: argparse._SubParsersAction):
     """Decorator factory for creating subcommand parsers from type hints."""
 
-    def register_command(command_name: str, aliases: Sequence[str] | None = None):
+    def register_command(
+        command_name: str,
+        aliases: Sequence[str] | None = None,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    ):
         aliases = aliases or []
 
         def decorator(func: Callable):
@@ -40,6 +44,7 @@ def command(subparsers: argparse._SubParsersAction):
                 command_name,
                 help=func.__doc__,
                 aliases=aliases,  # type: ignore
+                formatter_class=formatter_class,
             )
 
             hints = get_type_hints(func, include_extras=True)
