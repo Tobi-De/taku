@@ -18,7 +18,7 @@ uv tool install taku-cli
 or
 
 ```bash
-uv tool install "taku-cli[bling]" # just add some colors
+uv tool install "taku-cli[bling]" # just adds some colors
 ```
 
 ## Quick Start
