@@ -6,7 +6,6 @@ import stat
 import subprocess
 import sys
 import tomllib
-from contextlib import suppress
 from pathlib import Path
 from string import Template
 from typing import Annotated
@@ -306,19 +305,20 @@ def uninstall_scripts(
 
 def push_scripts(scripts: Path):
     """Auto-push changes to git if it's a git repo with changes"""
-    with suppress(subprocess.CalledProcessError):
-        # Check if it's a git repo and has changes in one go
-        result = subprocess.run(
-            ["git", "-C", str(scripts), "status", "--porcelain"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
+    result = subprocess.run(
+        ["git", "-C", str(scripts), "status", "--porcelain"],
+        capture_output=True,
+        text=True,
+    )
+    # not a git repo, we do nothing
+    if result.returncode != 0:
+        return
 
-        # If no output, no changes to commit
-        if not result.stdout.strip():
-            return
+    # If no output, no changes to commit
+    if not result.stdout.strip():
+        return
 
+    try:
         # Add, commit, and push
         subprocess.run(["git", "-C", str(scripts), "add", "."], check=True)
         subprocess.run(
@@ -326,7 +326,11 @@ def push_scripts(scripts: Path):
             check=True,
         )
         subprocess.run(["git", "-C", str(scripts), "push"], check=True)
-        print("Successfully pushed changes to remote")
+    except subprocess.CalledProcessError as e:
+        print(f"Git operation failed: {e}")
+        print("Please check your git configuration and resolve any issues manually.")
+
+    print("Successfully pushed changes to remote")
 
 
 if __name__ == "__main__":

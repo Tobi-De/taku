@@ -92,7 +92,7 @@ This keeps your changes synced, but to complete the auto-sync feature you also n
 2. Add a line to pull updates every 15 minutes (adjust the path to your scripts directory):
 
    ```bash
-   */15 * * * * cd /home/tobi/scripts && git pull --rebase >/dev/null 2>&1
+   */15 * * * * cd /home/tobi/scripts && git pull >/dev/null 2>&1
    ```
 
 ### Using systemd-timers
@@ -106,7 +106,7 @@ This keeps your changes synced, but to complete the auto-sync feature you also n
    [Service]
    Type=oneshot
    WorkingDirectory=/home/tobi/scripts
-   ExecStart=/usr/bin/git pull --rebase
+   ExecStart=/usr/bin/git pull
    ```
 
 2. Create a timer file `/etc/systemd/system/scripts-sync.timer`:
@@ -131,8 +131,4 @@ This keeps your changes synced, but to complete the auto-sync feature you also n
    sudo systemctl enable --now scripts-sync.timer
    ```
 
-This will run a `git pull --rebase` in your scripts directory every 15 minutes.
-
-
-
-
+This will run a `git pull` in your scripts directory every 15 minutes.
