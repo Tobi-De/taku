@@ -18,7 +18,6 @@ os.environ.setdefault("PYTHONUNBUFFERED", "1")
 from .command_parser import ArgSpec
 from .command_parser import command
 from .exceptions import ScriptAlreadyExistsError
-from .exceptions import ScriptNotFoundError
 from .exceptions import TemplateNotFoundError
 from .run import run_script, _resolve_script, default_scripts_dir
 
@@ -64,7 +63,7 @@ def _list_scripts(scripts: Path) -> list[str]:
     ]
 
 
-cmd("run")(run_script)
+cmd("run", formatter_class=formatter_class)(run_script)
 
 
 @cmd("list", aliases=["ls"], formatter_class=formatter_class)
@@ -113,7 +112,7 @@ def new_script(
     )
 
     scripts.mkdir(parents=True, exist_ok=True)
-    script_name, script_path = _resolve_script(scripts, name)
+    script_name, script_path = _resolve_script(scripts, name, raise_error=False)
     script_folder = script_path.parent
     if script_folder.exists():
         raise ScriptAlreadyExistsError(f"The script {script_name} already exists")
@@ -149,7 +148,7 @@ def get_script(
     ] = False,
 ):
     """Get details about an existing script"""
-    _, script_path = _resolve_script(scripts, name, raise_error=True)
+    _, script_path = _resolve_script(scripts, name)
     content = script_path.read_text()
     if script:
         print(content)
@@ -170,7 +169,7 @@ def rm_script(
     name: Annotated[str, ArgSpec(help="Name of the script")],
 ):
     """Remove an existing script"""
-    script_name, script_path = _resolve_script(scripts, name, raise_error=True)
+    script_name, script_path = _resolve_script(scripts, name)
     script_folder = script_path.parent
     uninstall_scripts(scripts, name)
     shutil.rmtree(script_folder, ignore_errors=True)
@@ -184,11 +183,8 @@ def edit_script(
     name: Annotated[str, ArgSpec(help="Name of the script to edit")],
 ):
     """Edit an existing script"""
-    script_path = scripts / name / name
 
-    if not script_path.exists():
-        raise ScriptNotFoundError(f"Script '{name}' not found")
-
+    _, script_path = _resolve_script(scripts, name)
     editor = os.environ.get("EDITOR") or os.environ.get("VISUAL") or "vi"
     subprocess.run([editor, str(script_path.resolve())])
     push_scripts(scripts)
@@ -221,7 +217,7 @@ def install_scripts(
     install_name = install_name or name
 
     if name != "all":
-        _resolve_script(scripts, name, raise_error=True)
+        _resolve_script(scripts, name)
 
     to_install = (
         {name: install_name}
@@ -329,6 +325,7 @@ def push_scripts(scripts: Path):
     except subprocess.CalledProcessError as e:
         print(f"Git operation failed: {e}")
         print("Please check your git configuration and resolve any issues manually.")
+        return
 
     print("Successfully pushed changes to remote")
 

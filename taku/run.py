@@ -36,7 +36,7 @@ def run_script(
 
 
 def _resolve_script(
-    scripts: Path, name: str, raise_error: bool = False
+    scripts: Path, name: str, raise_error: bool = True
 ) -> tuple[str, Path]:
     script_name = name.split(".")[0]
     script_path = scripts / script_name / script_name
