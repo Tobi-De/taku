@@ -19,7 +19,7 @@ from .command_parser import ArgSpec
 from .command_parser import command
 from .exceptions import ScriptAlreadyExistsError
 from .exceptions import TemplateNotFoundError
-from .run import run_script, _resolve_script, default_scripts_dir
+from .run import run_script, _resolve_script, default_scripts_dir, _list_scripts
 
 try:
     from rich_argparse import ArgumentDefaultsRichHelpFormatter
@@ -55,12 +55,6 @@ cmd = command(subparsers)
 def main() -> None:
     args = parser.parse_args()
     args.func(**vars(args))
-
-
-def _list_scripts(scripts: Path) -> list[str]:
-    return [
-        s.name for s in scripts.iterdir() if not s.name.startswith(".") and s.is_dir()
-    ]
 
 
 cmd("run", formatter_class=formatter_class)(run_script)
