@@ -190,7 +190,7 @@ def test_edit_script_not_found(tmp_path):
             edit_script(scripts_dir, "test")
 
 
-@patch("subprocess.run")
+@patch("taku.run.subprocess_run")
 def test_run_script(mock_run, tmp_path):
     """Test running a script."""
     scripts_dir = tmp_path / "scripts"
