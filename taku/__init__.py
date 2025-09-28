@@ -317,13 +317,16 @@ def push_scripts(scripts: Path):
             ["git", "-C", str(scripts), "commit", "-m", "Auto-sync: Update scripts"],
             check=True,
         )
-        subprocess.run(["git", "-C", str(scripts), "push"], check=True)
     except subprocess.CalledProcessError as e:
         print(f"Git operation failed: {e}")
         print("Please check your git configuration and resolve any issues manually.")
         return
-
-    print("Successfully pushed changes to remote")
+    subprocess.Popen(
+        ["git", "-C", str(scripts), "push"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
 
 
 if __name__ == "__main__":
