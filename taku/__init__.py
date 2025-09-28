@@ -165,7 +165,7 @@ def rm_script(
     """Remove an existing script"""
     script_name, script_path = _resolve_script(scripts, name)
     script_folder = script_path.parent
-    uninstall_scripts(scripts, name)
+    uninstall_scripts(scripts, name, push=False)
     shutil.rmtree(script_folder, ignore_errors=True)
     print(f"Script {script_name} removed")
     push_scripts(scripts)
@@ -258,6 +258,7 @@ def uninstall_scripts(
     name: Annotated[
         str, ArgSpec(help="Name of the script to uninstall, use 'all' for all scripts")
     ],
+    push: Annotated[bool, ArgSpec(ignore=True, help="Auto-push changes to git")] = True,
 ):
     """Uninstall a script using its metadata"""
 
@@ -290,7 +291,8 @@ def uninstall_scripts(
             print(f"Uninstalled {script_name} from {target_file}")
         else:
             print(f"Warning: {script_name} not found in {target_dir}")
-    push_scripts(scripts)
+    if push:
+        push_scripts(scripts)
 
 
 def push_scripts(scripts: Path):
