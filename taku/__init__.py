@@ -316,6 +316,8 @@ def push_scripts(scripts: Path):
         subprocess.run(
             ["git", "-C", str(scripts), "commit", "-m", "Auto-sync: Update scripts"],
             check=True,
+            capture_output=True,
+            text=True,
         )
     except subprocess.CalledProcessError as e:
         print(f"Git operation failed: {e}")

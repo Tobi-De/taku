@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [unreleased]
+
+### 🚜 Refactor
+
+- Hide commit output
+
 ## [0.4.6] - 2025-09-28
 
 ### 🚀 Features
