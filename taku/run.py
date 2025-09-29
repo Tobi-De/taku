@@ -24,14 +24,17 @@ def run_script(
     """Run a script"""
     args = args or []
     _, script_path = _resolve_script(scripts, name)
-    process = subprocess_run(
-        [str(script_path.resolve())] + args,
-        stdin=None,
-        stdout=None,
-        stderr=None,
-        check=False,
-        text=True,
-    )
+    try:
+        process = subprocess_run(
+            [str(script_path.resolve())] + args,
+            stdin=None,
+            stdout=None,
+            stderr=None,
+            check=False,
+            text=True,
+        )
+    except KeyboardInterrupt:
+        sys.exit(0)
     return process.returncode
 
 
