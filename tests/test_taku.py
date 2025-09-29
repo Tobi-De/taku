@@ -73,6 +73,14 @@ def test_new_script_with_content(tmp_path):
     assert content == custom_content
     assert script_path.stat().st_mode & 0o111  # Check executable
 
+    # auto add shebang
+    custom_content = "echo 'hello'"
+    new_script(scripts_dir, "custom2", None, custom_content)
+    script_path = scripts_dir / "custom2" / "custom2"
+    content = script_path.read_text()
+    assert content == f"#!/usr/bin/env bash\n{custom_content}"
+    assert script_path.stat().st_mode & 0o111  # Check executable
+
 
 def test_new_script_content_and_template_exclusive(tmp_path):
     """Test that content and template parameters are mutually exclusive."""

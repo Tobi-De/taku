@@ -112,6 +112,9 @@ def new_script(
         raise ScriptAlreadyExistsError(f"The script {script_name} already exists")
 
     if content:
+        content = (
+            content if content.startswith("#!") else f"#!/usr/bin/env bash\n{content}"
+        )
         script_content = content
     elif template_name:
         if not (template := scripts / ".templates" / template_name).exists():
