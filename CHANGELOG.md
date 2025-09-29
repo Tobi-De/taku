@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.9] - 2025-09-29
+
+### 🐛 Bug Fixes
+
+- Clean exit on keybaord interrupt
+
 ## [0.4.8] - 2025-09-29
 
 ### 🚀 Features
