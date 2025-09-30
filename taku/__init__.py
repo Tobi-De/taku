@@ -72,9 +72,9 @@ def list_scripts(
 ):
     """List all available scripts"""
     if templates:
-        templates_list = [
-            f"- {f.name}" for f in (scripts / ".templates").iterdir() if f.is_file()
-        ]
+        tpl_list = list((scripts / ".templates").iterdir())
+        tpl_list.sort()
+        templates_list = [f"- {f.name}" for f in tpl_list if f.is_file()]
         print(f"Available templates ({len(templates_list)}):")
         print("\n".join(templates_list))
 
@@ -88,7 +88,9 @@ def list_scripts(
             return name
         return f"{name} ({' - '.join(tags)})"
 
-    scripts_list = [f"- {_script_display(s)}" for s in _list_scripts(scripts)]
+    scripts_list = _list_scripts(scripts)
+    scripts_list.sort()
+    scripts_list = [f"- {_script_display(s)}" for s in scripts_list]
     print(f"Available scripts ({len(scripts_list)}):")
     print("\n".join(scripts_list))
 
