@@ -4,10 +4,11 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [unreleased]
+## [0.4.10] - 2025-09-30
 
 ### 🚀 Features
 
+- Include tags in script listing
 - Added option to only print metadata
 
 ## [0.4.9] - 2025-09-29
