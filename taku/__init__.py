@@ -44,7 +44,7 @@ parser.add_argument(
     "-s",
     type=Path,
     default=default_scripts_dir,
-    help=f"Scripts directory, default to {default_scripts_dir}",
+    help="Scripts directory",
 )
 parser.add_argument("--version", action="version", version="%(prog)s 0.4.9")
 subparsers = parser.add_subparsers(dest="command", required=True)
@@ -143,8 +143,19 @@ def get_script(
         "-s",
         ArgSpec(action="store_true", help="Print only script content"),
     ] = False,
+    metadata: Annotated[
+        bool,
+        "--metadata",
+        "-m",
+        ArgSpec(action="store_true", help="Print only script metadata"),
+    ] = False,
 ):
     """Get details about an existing script"""
+
+    assert not (script and metadata), (
+        "Cannot specify both --script and --metadata options"
+    )
+
     _, script_path = _resolve_script(scripts, name)
     content = script_path.read_text()
     if script:
@@ -154,7 +165,8 @@ def get_script(
     data = {"name": name}
     if meta.exists():
         data |= tomllib.loads(meta.read_text())
-    data["content"] = content
+    if not metadata:
+        data["content"] = content
     print("---")
     for key, value in data.items():
         print(key, ":", value)

@@ -35,7 +35,7 @@ def run_script(
         )
     except KeyboardInterrupt:
         sys.exit(0)
-    return process.returncode
+    sys.exit(process.returncode)
 
 
 def complete(prefix: str | None = None):
