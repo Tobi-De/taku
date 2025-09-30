@@ -111,7 +111,7 @@ wheels = [
 
 [[package]]
 name = "taku-cli"
-version = "0.4.10"
+version = "0.4.11"
 source = { editable = "." }
 dependencies = [
     { name = "tomli-w" },

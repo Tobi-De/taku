@@ -203,12 +203,21 @@ def rm_script(
 def edit_script(
     scripts: Annotated[Path, ArgSpec(ignore=True)],
     name: Annotated[str, ArgSpec(help="Name of the script to edit")],
+    metadata: Annotated[
+        bool,
+        "--metadata",
+        "-m",
+        ArgSpec(action="store_true", help="Edit script metadata"),
+    ] = False,
 ):
     """Edit an existing script"""
 
     _, script_path = _resolve_script(scripts, name)
     editor = os.environ.get("EDITOR") or os.environ.get("VISUAL") or "vi"
-    subprocess.run([editor, str(script_path.resolve())])
+    if metadata:
+        subprocess.run([editor, (script_path.parent / "meta.toml").resolve()])
+    else:
+        subprocess.run([editor, script_path.resolve()])
     push_scripts(scripts)
 
 
