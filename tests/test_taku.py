@@ -210,9 +210,10 @@ def test_run_script(mock_run, tmp_path):
     mock_process = Mock(returncode=0)
     mock_run.return_value = mock_process
 
-    result = run_script(scripts_dir, "test", ["arg1", "arg2"])
+    with pytest.raises(SystemExit) as e:
+        run_script(scripts_dir, "test", ["arg1", "arg2"])
+        assert e.value.code == 0
 
-    assert result == 0
     mock_run.assert_called_once()
     args = mock_run.call_args[0][0]
     assert str(script_path.resolve()) == args[0]
