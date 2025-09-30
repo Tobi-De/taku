@@ -77,7 +77,18 @@ def list_scripts(
         ]
         print(f"Available templates ({len(templates_list)}):")
         print("\n".join(templates_list))
-    scripts_list = [f"- {s}" for s in _list_scripts(scripts)]
+
+    def _script_display(name):
+        metadata_file = scripts / name / "meta.toml"
+        if not metadata_file.exists():
+            return name
+        metadata = tomllib.loads(metadata_file.read_text())
+        tags = metadata.get("tags", [])
+        if not tags:
+            return name
+        return f"{name} ({' - '.join(tags)})"
+
+    scripts_list = [f"- {_script_display(s)}" for s in _list_scripts(scripts)]
     print(f"Available scripts ({len(scripts_list)}):")
     print("\n".join(scripts_list))
 
