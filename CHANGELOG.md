@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.12] - 2025-09-30
+
+### 🚀 Features
+
+- Added option to edit metadata
+
 ## [0.4.11] - 2025-09-30
 
 ### 🚀 Features
