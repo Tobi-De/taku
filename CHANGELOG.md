@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.13] - 2025-10-02
+
+### 🚀 Features
+
+- Auto get description for python scripts
+
 ## [0.4.12] - 2025-09-30
 
 ### 🚀 Features
