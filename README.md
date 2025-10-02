@@ -105,6 +105,7 @@ This keeps your changes synced, but to complete the auto-sync feature you also n
 
    [Service]
    Type=oneshot
+   User=tobi
    WorkingDirectory=/home/tobi/scripts
    ExecStart=/usr/bin/git pull
    ```
