@@ -1,4 +1,5 @@
 import argparse
+import ast
 import os
 import platform
 import shutil
@@ -6,6 +7,7 @@ import stat
 import subprocess
 import sys
 import tomllib
+from contextlib import suppress
 from pathlib import Path
 from string import Template
 from typing import Annotated
@@ -178,11 +180,22 @@ def get_script(
     data = {"name": name}
     if meta.exists():
         data |= tomllib.loads(meta.read_text())
+    if not data.get("description"):
+        if script_path.resolve().suffix == ".py":
+            with suppress(TypeError, SyntaxError):
+                tree = ast.parse(script_path.read_text(), filename=name)
+                if docstring := ast.get_docstring(tree):
+                    data["description"] = docstring
     if not metadata:
         data["content"] = content
     print("---")
     for key, value in data.items():
-        print(key, ":", value)
+        if key in ["description", "content"]:
+            print(f"{key} :")
+            for line in value.splitlines():
+                print(f"\t{line}")
+        else:
+            print(key, ":", value)
 
 
 @cmd("rm", formatter_class=formatter_class)
