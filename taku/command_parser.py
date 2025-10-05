@@ -27,6 +27,7 @@ class ArgSpec:
     dest: str | None = NOT_SET  # type: ignore
 
     ignore: bool = False
+    group: str | None = None
 
 
 def command(subparsers: argparse._SubParsersAction):
@@ -50,6 +51,9 @@ def command(subparsers: argparse._SubParsersAction):
             hints = get_type_hints(func, include_extras=True)
             parameters = inspect.signature(func).parameters
             auto_types = [int, float, Path]
+
+            # group_name:parser
+            groups = {}
 
             for param_name, param in parameters.items():
                 hint = hints.get(param_name)
@@ -87,10 +91,18 @@ def command(subparsers: argparse._SubParsersAction):
                         k: v
                         for k, v in asdict(arg_spec).items()
                         if v is not NOT_SET
-                        and k not in ["default", "type", "ignore", "nargs"]
+                        and k not in ["default", "type", "ignore", "nargs", "group"]
                     }
 
-                subparser.add_argument(*arg_names, **arg_kwargs)
+                if arg_spec and arg_spec.group:
+                    group = (
+                        groups.get(arg_spec.group)
+                        or subparser.add_mutually_exclusive_group()
+                    )
+                    groups[arg_spec.group] = group
+                    group.add_argument(*arg_names, **arg_kwargs)
+                else:
+                    subparser.add_argument(*arg_names, **arg_kwargs)
 
             params = list(parameters)
 

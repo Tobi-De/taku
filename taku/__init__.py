@@ -105,20 +105,20 @@ def new_script(
         str | None,
         "--template",
         "-t",
-        ArgSpec(help="Optional template for the script", dest="template_name"),
+        ArgSpec(
+            help="Optional template for the script",
+            dest="template_name",
+            group="content",
+        ),
     ] = None,
     content: Annotated[
         str | None,
         "--content",
         "-c",
-        ArgSpec(help="Content for the new script"),
+        ArgSpec(help="Content for the new script", group="content"),
     ] = None,
 ):
     """Create a new script"""
-
-    assert not (content and template_name), (
-        "Cannot specify both --content and --template options"
-    )
 
     scripts.mkdir(parents=True, exist_ok=True)
     script_name, script_path = _resolve_script(scripts, name, raise_error=False)
@@ -156,20 +156,16 @@ def get_script(
         bool,
         "--script",
         "-s",
-        ArgSpec(action="store_true", help="Print only script content"),
+        ArgSpec(action="store_true", help="Print only script content", group="info"),
     ] = False,
     metadata: Annotated[
         bool,
         "--metadata",
         "-m",
-        ArgSpec(action="store_true", help="Print only script metadata"),
+        ArgSpec(action="store_true", help="Print only script metadata", group="info"),
     ] = False,
 ):
     """Get details about an existing script"""
-
-    assert not (script and metadata), (
-        "Cannot specify both --script and --metadata options"
-    )
 
     _, script_path = _resolve_script(scripts, name)
     content = script_path.read_text()
