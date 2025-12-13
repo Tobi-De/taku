@@ -6,7 +6,6 @@ from subprocess import run as subprocess_run
 from typing import Annotated
 
 from .command_parser import ArgSpec
-from .exceptions import MissingScriptName
 from .exceptions import ScriptNotFoundError
 
 default_scripts_dir = getenv("TAKU_SCRIPTS", Path.home() / "scripts")
@@ -23,7 +22,11 @@ def run_script(
 ):
     """Run a script"""
     args = args or []
-    _, script_path = _resolve_script(scripts, name)
+    try:
+        _, script_path = _resolve_script(scripts, name)
+    except ScriptNotFoundError:
+        sys.stdout.write(f"Script '{name}' not found\n")
+        sys.exit(1)
     try:
         process = subprocess_run(
             [str(script_path.resolve())] + args,
@@ -72,5 +75,6 @@ def main():
         complete(sys.argv[2] if arg_size > 2 else None)
         sys.exit(0)
     if arg_size < 2:
-        raise MissingScriptName("Missing script name")
+        sys.stdout.write("Missing script name\n")
+        sys.exit(1)
     run_script(Path(default_scripts_dir), sys.argv[1], sys.argv[2:])
